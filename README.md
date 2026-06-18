@@ -2,11 +2,6 @@
 
 Backend API built with Vapor, PostgreSQL, Docker, Heroku, and Supabase.
 
-## Documentation
-
-- [Vapor local development](./vapor.md)
-- [Supabase certificate setup](./superbase.md)
-
 ## Quick Start
 
 You can run the project locally with Docker Compose:
@@ -81,3 +76,9 @@ If you need to revert the last migration:
 ```bash
 heroku run -a <heroku-app-name> -- ./CoffeeShop migrate --revert --yes
 ```
+
+## Documentation
+
+* [Vapor](/vapor.md) — Detailed guide for running and debugging the backend locally.
+* [Supabase](/superbase.md) — Step-by-step setup for TLS support.
+* [MIT License](/LICENSE) — Project terms and conditions.
