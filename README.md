@@ -58,6 +58,7 @@ Set them in:
 Then deploy the Docker image to Heroku:
 
 ```bash
+heroku stack:set container -a <heroku-app-name>
 heroku container:login
 heroku container:push web -a <heroku-app-name>
 heroku container:release web -a <heroku-app-name>
