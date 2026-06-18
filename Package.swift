@@ -13,6 +13,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent.git", from: "4.13.0"),
         // 🐘 Fluent driver for Postgres.
         .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.12.0"),
+        // 🪶 Fluent driver for SQLite, used for isolated tests.
+        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.8.0"),
         // 🍃 An expressive, performant, and extensible templating language built for Swift.
         .package(url: "https://github.com/vapor/leaf.git", from: "4.5.1"),
         // 🔵 Non-blocking, event-driven networking for Swift. Used for custom executors
@@ -24,6 +26,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOCore", package: "swift-nio"),
