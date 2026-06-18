@@ -2,7 +2,10 @@ name: Deploy Development
 
 on:
   push:
-    branches: ["development"]
+    # This project deploys the development Heroku app directly from main.
+    # That is an intentional exception to the usual branch separation because
+    # the repository is kept simple and only uses one active branch for now.
+    branches: ["main"]
 
 jobs:
   deploy:
