@@ -2,6 +2,11 @@
 
 Backend API built with Vapor, PostgreSQL, Docker, Heroku, and Supabase.
 
+## Documentation
+
+- [Vapor local development](./vapor.md)
+- [Supabase certificate setup](./superbase.md)
+
 ## Quick Start
 
 You can run the project locally with Docker Compose:
