@@ -1,5 +1,11 @@
 # CoffeeShop
 
+[![Build](https://github.com/jorgemrht/CoffeeShopBackend/actions/workflows/swift.yml/badge.svg)](https://github.com/jorgemrht/CoffeeShopBackend/actions/workflows/swift.yml)
+[![Deploy Development](https://github.com/jorgemrht/CoffeeShopBackend/actions/workflows/deploy-development.yml/badge.svg)](https://github.com/jorgemrht/CoffeeShopBackend/actions/workflows/deploy-development.yml)
+![Swift](https://img.shields.io/badge/Swift-6.3-F05138?logo=swift&logoColor=white)
+![Vapor](https://img.shields.io/badge/Vapor-4-0D0D0D?logo=vapor&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+
 Backend API built with Vapor, PostgreSQL, Docker, Heroku, and Supabase.
 
 ## Quick Start
