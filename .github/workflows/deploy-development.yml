@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     timeout-minutes: 30
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
 
     steps:
       - uses: actions/checkout@v5
@@ -28,9 +31,6 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Validate deploy configuration
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
         run: |
           test -n "$HEROKU_API_KEY"
           test -n "$HEROKU_APP_NAME"
@@ -57,9 +57,6 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Release image on Heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
         run: |
           curl --fail-with-body --silent --show-error \
             --request PATCH \
