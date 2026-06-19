@@ -56,12 +56,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
       - name: Release image on Heroku
         run: |
-          curl --fail-with-body --silent --show-error \
-            --request PATCH \
-            --url "https://api.heroku.com/apps/$HEROKU_APP_NAME/formation" \
-            --header "Accept: application/vnd.heroku+json; version=3.docker-releases" \
-            --header "Authorization: Bearer $HEROKU_API_KEY" \
-            --header "Content-Type: application/json" \
-            --data "{\"updates\":[{\"type\":\"web\",\"docker_image\":\"${{ steps.build.outputs.digest }}\"}]}"
+          heroku container:release web --app "$HEROKU_APP_NAME"
