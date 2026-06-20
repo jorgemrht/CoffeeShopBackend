@@ -1,0 +1,12 @@
+name: localhost
+variables:
+  - name: base_url
+    value: http://localhost:8080
+  - name: email
+    value: jorge@mrht.dev
+  - name: password
+    value: "123456"
+  - name: device_id
+    value: 8ebe14ee-26a6-481c-8add-15741530e5e1
+  - name: token
+    value: ""
