@@ -50,7 +50,7 @@ jobs:
         run: |
           mkdir -p ../reports
           bru run \
-            --env base_url \
+            --env dev \
             --env-var base_url="$API_BASE_URL" \
             --env-var email="$API_EMAIL" \
             --env-var password="$API_PASSWORD" \
