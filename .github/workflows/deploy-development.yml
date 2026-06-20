@@ -65,20 +65,21 @@ jobs:
           test -n "$API_DEVICE_ID"
 
       - name: Run Bruno tests
+        working-directory: bruno
         env:
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
           API_EMAIL: ${{ secrets.API_EMAIL }}
           API_PASSWORD: ${{ secrets.API_PASSWORD }}
           API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
         run: |
-          mkdir -p reports
-          bru run bruno \
+          mkdir -p ../reports
+          bru run \
             --env base_url \
             --env-var base_url="$API_BASE_URL" \
             --env-var email="$API_EMAIL" \
             --env-var password="$API_PASSWORD" \
             --env-var device_id="$API_DEVICE_ID" \
-            --reporter-html reports/bruno-report.html \
+            --reporter-html ../reports/bruno-report.html \
             --reporter-skip-headers Authorization \
             --reporter-skip-body
 
