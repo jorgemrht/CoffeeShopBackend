@@ -25,15 +25,12 @@ COPY . .
 
 RUN mkdir /staging
 
-# Build the application, with optimizations, with static linking, and using jemalloc.
-# Resolve the multiarch library directory explicitly so the linker finds jemalloc
-# reliably in Docker/buildx environments.
+# Build the application, with optimizations, with static linking, and using jemalloc
+# N.B.: The static version of jemalloc is incompatible with the static Swift runtime.
 RUN --mount=type=cache,target=/build/.build \
-    JEMALLOC_LIB_DIR="/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)" && \
     swift build -c release \
         --product CoffeeShop \
         --static-swift-stdlib \
-        -Xlinker -L${JEMALLOC_LIB_DIR} \
         -Xlinker -ljemalloc && \
     # Copy main executable to staging area
     cp "$(swift build -c release --show-bin-path)/CoffeeShop" /staging && \
