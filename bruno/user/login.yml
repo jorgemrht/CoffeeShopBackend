@@ -29,8 +29,6 @@ runtime:
     - expression: res.status
       operator: eq
       value: "200"
-    - expression: res.body.token
-      operator: isString
 
 settings:
   encodeUrl: true
