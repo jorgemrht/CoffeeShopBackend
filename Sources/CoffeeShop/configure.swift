@@ -9,9 +9,13 @@ func configure(_ app: Application) async throws {
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
+    try configurePayloadSecurity(app)
+
     if app.environment == .testing {
         app.databases.use(.sqlite(.memory), as: .sqlite)
     } else {
+        // TODO: Next PR: remove these database fallbacks and require DATABASE_* values explicitly outside testing.
+        // Keeping defaults is convenient for now, but strict environment-based configuration is safer and clearer.
         app.databases.use(
             DatabaseConfigurationFactory.postgres(configuration: .init(
                 hostname: Environment.get("DATABASE_HOST") ?? "localhost",
@@ -33,4 +37,18 @@ func configure(_ app: Application) async throws {
 
     // register routes
     try routes(app)
+}
+
+private func configurePayloadSecurity(_ app: Application) throws {
+    let isEnabled = try PayloadSecurityBootstrap.isEnabled()
+
+    if isEnabled {
+        app.payloadSecurity = .init(
+            isEnabled: true,
+            service: try PayloadSecurityBootstrap.make(for: app.environment)
+        )
+        app.middleware.use(PayloadSecurityMiddleware(), at: .beginning)
+    } else {
+        app.payloadSecurity = .init(isEnabled: false, service: nil)
+    }
 }

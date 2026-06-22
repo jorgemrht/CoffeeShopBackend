@@ -3,8 +3,7 @@ import Vapor
 
 struct UserLoginAuthenticator: AsyncRequestAuthenticator {
     func authenticate(request: Request) async throws {
-        try UserLoginRequestDTO.validate(content: request)
-        let credentials = try request.content.decode(UserLoginRequestDTO.self)
+        let credentials = try request.secureContent.decodeValidating(UserLoginRequestDTO.self)
         guard let user = try await User.query(on: request.db)
             .filter(byEmail: credentials.email)
             .first()

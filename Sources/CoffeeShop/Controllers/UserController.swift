@@ -18,7 +18,7 @@ struct UserController: RouteCollection {
     @Sendable
     func login(req: Request) async throws -> UserLoginResponseDTO {
         let user = try req.auth.require(User.self)
-        let loginRequest = try req.content.decode(UserLoginRequestDTO.self)
+        let loginRequest = try req.secureContent.decodeValidating(UserLoginRequestDTO.self)
         let token = try await UserToken.issue(
             for: user,
             deviceID: loginRequest.deviceID,
