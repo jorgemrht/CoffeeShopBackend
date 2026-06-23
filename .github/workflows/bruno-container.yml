@@ -1,0 +1,180 @@
+name: Bruno Container Validation
+
+on:
+  workflow_call:
+    inputs:
+      environment_name:
+        required: false
+        type: string
+        default: development
+      docker_context:
+        required: false
+        type: string
+        default: .
+      dockerfile_path:
+        required: false
+        type: string
+        default: ./Dockerfile
+      image_tag:
+        required: false
+        type: string
+        default: coffeeshop-development:ci
+      image_artifact_name:
+        required: false
+        type: string
+        default: coffeeshop-development-image
+      bruno_report_artifact_name:
+        required: false
+        type: string
+        default: bruno-report
+      container_port:
+        required: false
+        type: number
+        default: 8080
+      payload_security_enabled:
+        required: false
+        type: string
+        default: "false"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-container:
+    name: Validate Container With Bruno
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment_name }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+      API_EMAIL: ${{ secrets.API_EMAIL }}
+      API_PASSWORD: ${{ secrets.API_PASSWORD }}
+      API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
+      IMAGE_TAG: ${{ inputs.image_tag }}
+      CONTAINER_PORT: ${{ inputs.container_port }}
+      PAYLOAD_SECURITY_ENABLED: ${{ inputs.payload_security_enabled }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Validate Bruno and Heroku configuration
+        run: |
+          test -n "$HEROKU_API_KEY"
+          test -n "$HEROKU_APP_NAME"
+          test -n "$API_EMAIL"
+          test -n "$API_PASSWORD"
+          test -n "$API_DEVICE_ID"
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ inputs.docker_context }}
+          file: ${{ inputs.dockerfile_path }}
+          platforms: linux/amd64
+          load: true
+          tags: ${{ inputs.image_tag }}
+          provenance: false
+          sbom: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
+      - name: Export Heroku config vars for local container validation
+        run: |
+          curl --fail-with-body --silent --show-error \
+            "https://api.heroku.com/apps/${HEROKU_APP_NAME}/config-vars" \
+            -H "Authorization: Bearer ${HEROKU_API_KEY}" \
+            -H "Accept: application/vnd.heroku+json; version=3" \
+            -H "User-Agent: coffeeshop-github-actions" \
+            > /tmp/heroku-config.json
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          config = json.loads(Path("/tmp/heroku-config.json").read_text())
+          github_env = Path(os.environ["GITHUB_ENV"])
+          keys_path = Path("/tmp/heroku-env-keys.txt")
+
+          keys = sorted(config.keys())
+          keys_path.write_text("".join(f"{key}\n" for key in keys))
+
+          with github_env.open("a", encoding="utf-8") as fh:
+            for key in keys:
+              value = "" if config[key] is None else str(config[key])
+              fh.write(f"{key}<<__EOF__\n{value}\n__EOF__\n")
+          PY
+
+      - name: Run Bruno against the built container with Heroku config
+        run: |
+          env_args=()
+          while IFS= read -r key; do
+            env_args+=(-e "$key")
+          done < /tmp/heroku-env-keys.txt
+
+          docker run -d --rm --name coffeeshop-bruno \
+            -p "${CONTAINER_PORT}:${CONTAINER_PORT}" \
+            "${env_args[@]}" \
+            -e "PAYLOAD_SECURITY_ENABLED=${PAYLOAD_SECURITY_ENABLED}" \
+            -e "PORT=${CONTAINER_PORT}" \
+            "$IMAGE_TAG"
+
+          trap 'docker logs coffeeshop-bruno || true; docker stop coffeeshop-bruno || true' EXIT
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error "http://127.0.0.1:${CONTAINER_PORT}/hello" | grep -F "Hello, world!" >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "Container readiness check failed"
+              exit 1
+            fi
+            sleep 2
+          done
+
+          mkdir -p reports
+          cd bruno
+          bru run \
+            --env dev \
+            --env-var base_url="http://127.0.0.1:${CONTAINER_PORT}" \
+            --env-var email="$API_EMAIL" \
+            --env-var password="$API_PASSWORD" \
+            --env-var device_id="$API_DEVICE_ID" \
+            --reporter-html ../reports/bruno-report.html \
+            --reporter-skip-headers Authorization \
+            --reporter-skip-body
+
+      - name: Upload Bruno report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.bruno_report_artifact_name }}
+          path: reports/bruno-report.html
+          if-no-files-found: error
+
+      - name: Save validated Docker image
+        run: docker save "$IMAGE_TAG" | gzip > /tmp/coffeeshop-development-ci.tar.gz
+
+      - name: Upload validated Docker image
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.image_artifact_name }}
+          path: /tmp/coffeeshop-development-ci.tar.gz
+          if-no-files-found: error
+          retention-days: 1
