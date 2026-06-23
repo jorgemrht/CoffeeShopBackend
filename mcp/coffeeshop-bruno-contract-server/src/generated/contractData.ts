@@ -1,24 +1,754 @@
 import type { ContractSnapshot } from "../types.js";
 
-const emptySnapshot: ContractSnapshot = {
-  snapshotVersion: "unpublished",
-  generatedAt: "1970-01-01T00:00:00.000Z",
-  repoRoot: "",
-  brunoRoot: "",
-  endpointCount: 0,
-  endpoints: [],
-  modelCount: 0,
-  models: [],
-  environments: [],
-  authProfile: {
-    collectionAuth: "none",
-    folderAuth: [],
-    authSourceFiles: [],
-    payloadSecurityFiles: []
+export const currentSnapshot: ContractSnapshot = {
+  "snapshotVersion": "sha-d90e660",
+  "generatedAt": "2026-06-23T16:19:35.882Z",
+  "repoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend",
+  "brunoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend/bruno",
+  "endpointCount": 2,
+  "endpoints": [
+    {
+      "name": "me",
+      "group": "user",
+      "method": "GET",
+      "path": "users/me",
+      "url": "{{base_url}}users/me",
+      "auth": "inherit",
+      "file": "bruno/user/me.yml",
+      "bodyType": null,
+      "bodyExample": null,
+      "assertions": [
+        {
+          "expression": "res.status",
+          "operator": "eq",
+          "value": "200"
+        }
+      ],
+      "runtimeScripts": [],
+      "environmentVariables": [
+        "base_url"
+      ],
+      "sourceFiles": [],
+      "requestDtoNames": [],
+      "requestFields": [],
+      "responseDtoNames": [],
+      "responseFields": [],
+      "requestModelId": null,
+      "responseModelId": null,
+      "interactionHints": [
+        "This endpoint uses auth strategy 'inherit'.",
+        "Bruno assertions define expected success behavior.",
+        "Bruno does not explicitly document a response model for this endpoint."
+      ]
+    },
+    {
+      "name": "login",
+      "group": "user",
+      "method": "POST",
+      "path": "users/login",
+      "url": "{{base_url}}users/login",
+      "auth": "inherit",
+      "file": "bruno/user/login.yml",
+      "bodyType": "json",
+      "bodyExample": {
+        "email": "{{email}}",
+        "password": "{{password}}",
+        "deviceID": "{{device_id}}"
+      },
+      "assertions": [
+        {
+          "expression": "res.status",
+          "operator": "eq",
+          "value": "200"
+        }
+      ],
+      "runtimeScripts": [
+        {
+          "type": "after-response",
+          "code": "const body = res.body;\nif (!body?.token) {\n  throw new Error(\"Login response does not contain token\");\n}\nbru.setVar(\"token\", body.token);"
+        }
+      ],
+      "environmentVariables": [
+        "base_url",
+        "device_id",
+        "email",
+        "password"
+      ],
+      "sourceFiles": [],
+      "requestDtoNames": [],
+      "requestFields": [
+        "deviceID",
+        "email",
+        "password"
+      ],
+      "responseDtoNames": [],
+      "responseFields": [],
+      "requestModelId": "POST_users_login_request",
+      "responseModelId": null,
+      "interactionHints": [
+        "This endpoint uses auth strategy 'inherit'.",
+        "Bruno provides a structured request example for this endpoint.",
+        "Bruno runtime scripts encode post-request behavior.",
+        "Bruno assertions define expected success behavior.",
+        "Bruno does not explicitly document a response model for this endpoint."
+      ]
+    }
+  ],
+  "modelCount": 1,
+  "models": [
+    {
+      "id": "POST_users_login_request",
+      "name": "POST users/login request",
+      "kind": "request",
+      "endpointKey": "POST users/login",
+      "method": "POST",
+      "path": "users/login",
+      "source": "bruno",
+      "fieldCount": 3,
+      "dtoNames": [],
+      "fields": [
+        "deviceID",
+        "email",
+        "password"
+      ],
+      "example": {
+        "email": "{{email}}",
+        "password": "{{password}}",
+        "deviceID": "{{device_id}}"
+      },
+      "brunoFile": "bruno/user/login.yml",
+      "sourceFiles": [],
+      "notes": []
+    }
+  ],
+  "environments": [
+    {
+      "name": "dev",
+      "file": "bruno/environments/dev.yml",
+      "variables": [
+        {
+          "name": "base_url",
+          "value": ""
+        },
+        {
+          "name": "email",
+          "value": "jorge@mrht.dev"
+        },
+        {
+          "name": "password",
+          "value": "123456"
+        },
+        {
+          "name": "device_id",
+          "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+        },
+        {
+          "name": "token",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "localhost",
+      "file": "bruno/environments/localhost.yml",
+      "variables": [
+        {
+          "name": "base_url",
+          "value": "http://127.0.0.1:8080/"
+        },
+        {
+          "name": "email",
+          "value": "jorge@mrht.dev"
+        },
+        {
+          "name": "password",
+          "value": "123456"
+        },
+        {
+          "name": "device_id",
+          "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+        },
+        {
+          "name": "token",
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "authProfile": {
+    "collectionAuth": "bearer",
+    "folderAuth": [
+      {
+        "group": "user",
+        "auth": "inherit"
+      }
+    ],
+    "authSourceFiles": [],
+    "payloadSecurityFiles": []
   }
-};
+} as ContractSnapshot;
 
-export const currentSnapshot = emptySnapshot;
 export const snapshotIndex: Record<string, ContractSnapshot> = {
-  [emptySnapshot.snapshotVersion]: emptySnapshot
-};
+  "sha-d90e660": {
+    "snapshotVersion": "sha-d90e660",
+    "generatedAt": "2026-06-23T16:19:35.882Z",
+    "repoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend",
+    "brunoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend/bruno",
+    "endpointCount": 2,
+    "endpoints": [
+      {
+        "name": "me",
+        "group": "user",
+        "method": "GET",
+        "path": "users/me",
+        "url": "{{base_url}}users/me",
+        "auth": "inherit",
+        "file": "bruno/user/me.yml",
+        "bodyType": null,
+        "bodyExample": null,
+        "assertions": [
+          {
+            "expression": "res.status",
+            "operator": "eq",
+            "value": "200"
+          }
+        ],
+        "runtimeScripts": [],
+        "environmentVariables": [
+          "base_url"
+        ],
+        "sourceFiles": [],
+        "requestDtoNames": [],
+        "requestFields": [],
+        "responseDtoNames": [],
+        "responseFields": [],
+        "requestModelId": null,
+        "responseModelId": null,
+        "interactionHints": [
+          "This endpoint uses auth strategy 'inherit'.",
+          "Bruno assertions define expected success behavior.",
+          "Bruno does not explicitly document a response model for this endpoint."
+        ]
+      },
+      {
+        "name": "login",
+        "group": "user",
+        "method": "POST",
+        "path": "users/login",
+        "url": "{{base_url}}users/login",
+        "auth": "inherit",
+        "file": "bruno/user/login.yml",
+        "bodyType": "json",
+        "bodyExample": {
+          "email": "{{email}}",
+          "password": "{{password}}",
+          "deviceID": "{{device_id}}"
+        },
+        "assertions": [
+          {
+            "expression": "res.status",
+            "operator": "eq",
+            "value": "200"
+          }
+        ],
+        "runtimeScripts": [
+          {
+            "type": "after-response",
+            "code": "const body = res.body;\nif (!body?.token) {\n  throw new Error(\"Login response does not contain token\");\n}\nbru.setVar(\"token\", body.token);"
+          }
+        ],
+        "environmentVariables": [
+          "base_url",
+          "device_id",
+          "email",
+          "password"
+        ],
+        "sourceFiles": [],
+        "requestDtoNames": [],
+        "requestFields": [
+          "deviceID",
+          "email",
+          "password"
+        ],
+        "responseDtoNames": [],
+        "responseFields": [],
+        "requestModelId": "POST_users_login_request",
+        "responseModelId": null,
+        "interactionHints": [
+          "This endpoint uses auth strategy 'inherit'.",
+          "Bruno provides a structured request example for this endpoint.",
+          "Bruno runtime scripts encode post-request behavior.",
+          "Bruno assertions define expected success behavior.",
+          "Bruno does not explicitly document a response model for this endpoint."
+        ]
+      }
+    ],
+    "modelCount": 1,
+    "models": [
+      {
+        "id": "POST_users_login_request",
+        "name": "POST users/login request",
+        "kind": "request",
+        "endpointKey": "POST users/login",
+        "method": "POST",
+        "path": "users/login",
+        "source": "bruno",
+        "fieldCount": 3,
+        "dtoNames": [],
+        "fields": [
+          "deviceID",
+          "email",
+          "password"
+        ],
+        "example": {
+          "email": "{{email}}",
+          "password": "{{password}}",
+          "deviceID": "{{device_id}}"
+        },
+        "brunoFile": "bruno/user/login.yml",
+        "sourceFiles": [],
+        "notes": []
+      }
+    ],
+    "environments": [
+      {
+        "name": "dev",
+        "file": "bruno/environments/dev.yml",
+        "variables": [
+          {
+            "name": "base_url",
+            "value": ""
+          },
+          {
+            "name": "email",
+            "value": "jorge@mrht.dev"
+          },
+          {
+            "name": "password",
+            "value": "123456"
+          },
+          {
+            "name": "device_id",
+            "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+          },
+          {
+            "name": "token",
+            "value": ""
+          }
+        ]
+      },
+      {
+        "name": "localhost",
+        "file": "bruno/environments/localhost.yml",
+        "variables": [
+          {
+            "name": "base_url",
+            "value": "http://127.0.0.1:8080/"
+          },
+          {
+            "name": "email",
+            "value": "jorge@mrht.dev"
+          },
+          {
+            "name": "password",
+            "value": "123456"
+          },
+          {
+            "name": "device_id",
+            "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+          },
+          {
+            "name": "token",
+            "value": ""
+          }
+        ]
+      }
+    ],
+    "authProfile": {
+      "collectionAuth": "bearer",
+      "folderAuth": [
+        {
+          "group": "user",
+          "auth": "inherit"
+        }
+      ],
+      "authSourceFiles": [],
+      "payloadSecurityFiles": []
+    }
+  },
+  "latest": {
+    "snapshotVersion": "sha-d90e660",
+    "generatedAt": "2026-06-23T16:19:35.882Z",
+    "repoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend",
+    "brunoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend/bruno",
+    "endpointCount": 2,
+    "endpoints": [
+      {
+        "name": "me",
+        "group": "user",
+        "method": "GET",
+        "path": "users/me",
+        "url": "{{base_url}}users/me",
+        "auth": "inherit",
+        "file": "bruno/user/me.yml",
+        "bodyType": null,
+        "bodyExample": null,
+        "assertions": [
+          {
+            "expression": "res.status",
+            "operator": "eq",
+            "value": "200"
+          }
+        ],
+        "runtimeScripts": [],
+        "environmentVariables": [
+          "base_url"
+        ],
+        "sourceFiles": [],
+        "requestDtoNames": [],
+        "requestFields": [],
+        "responseDtoNames": [],
+        "responseFields": [],
+        "requestModelId": null,
+        "responseModelId": null,
+        "interactionHints": [
+          "This endpoint uses auth strategy 'inherit'.",
+          "Bruno assertions define expected success behavior.",
+          "Bruno does not explicitly document a response model for this endpoint."
+        ]
+      },
+      {
+        "name": "login",
+        "group": "user",
+        "method": "POST",
+        "path": "users/login",
+        "url": "{{base_url}}users/login",
+        "auth": "inherit",
+        "file": "bruno/user/login.yml",
+        "bodyType": "json",
+        "bodyExample": {
+          "email": "{{email}}",
+          "password": "{{password}}",
+          "deviceID": "{{device_id}}"
+        },
+        "assertions": [
+          {
+            "expression": "res.status",
+            "operator": "eq",
+            "value": "200"
+          }
+        ],
+        "runtimeScripts": [
+          {
+            "type": "after-response",
+            "code": "const body = res.body;\nif (!body?.token) {\n  throw new Error(\"Login response does not contain token\");\n}\nbru.setVar(\"token\", body.token);"
+          }
+        ],
+        "environmentVariables": [
+          "base_url",
+          "device_id",
+          "email",
+          "password"
+        ],
+        "sourceFiles": [],
+        "requestDtoNames": [],
+        "requestFields": [
+          "deviceID",
+          "email",
+          "password"
+        ],
+        "responseDtoNames": [],
+        "responseFields": [],
+        "requestModelId": "POST_users_login_request",
+        "responseModelId": null,
+        "interactionHints": [
+          "This endpoint uses auth strategy 'inherit'.",
+          "Bruno provides a structured request example for this endpoint.",
+          "Bruno runtime scripts encode post-request behavior.",
+          "Bruno assertions define expected success behavior.",
+          "Bruno does not explicitly document a response model for this endpoint."
+        ]
+      }
+    ],
+    "modelCount": 1,
+    "models": [
+      {
+        "id": "POST_users_login_request",
+        "name": "POST users/login request",
+        "kind": "request",
+        "endpointKey": "POST users/login",
+        "method": "POST",
+        "path": "users/login",
+        "source": "bruno",
+        "fieldCount": 3,
+        "dtoNames": [],
+        "fields": [
+          "deviceID",
+          "email",
+          "password"
+        ],
+        "example": {
+          "email": "{{email}}",
+          "password": "{{password}}",
+          "deviceID": "{{device_id}}"
+        },
+        "brunoFile": "bruno/user/login.yml",
+        "sourceFiles": [],
+        "notes": []
+      }
+    ],
+    "environments": [
+      {
+        "name": "dev",
+        "file": "bruno/environments/dev.yml",
+        "variables": [
+          {
+            "name": "base_url",
+            "value": ""
+          },
+          {
+            "name": "email",
+            "value": "jorge@mrht.dev"
+          },
+          {
+            "name": "password",
+            "value": "123456"
+          },
+          {
+            "name": "device_id",
+            "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+          },
+          {
+            "name": "token",
+            "value": ""
+          }
+        ]
+      },
+      {
+        "name": "localhost",
+        "file": "bruno/environments/localhost.yml",
+        "variables": [
+          {
+            "name": "base_url",
+            "value": "http://127.0.0.1:8080/"
+          },
+          {
+            "name": "email",
+            "value": "jorge@mrht.dev"
+          },
+          {
+            "name": "password",
+            "value": "123456"
+          },
+          {
+            "name": "device_id",
+            "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+          },
+          {
+            "name": "token",
+            "value": ""
+          }
+        ]
+      }
+    ],
+    "authProfile": {
+      "collectionAuth": "bearer",
+      "folderAuth": [
+        {
+          "group": "user",
+          "auth": "inherit"
+        }
+      ],
+      "authSourceFiles": [],
+      "payloadSecurityFiles": []
+    }
+  },
+  "current": {
+    "snapshotVersion": "sha-d90e660",
+    "generatedAt": "2026-06-23T16:19:35.882Z",
+    "repoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend",
+    "brunoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend/bruno",
+    "endpointCount": 2,
+    "endpoints": [
+      {
+        "name": "me",
+        "group": "user",
+        "method": "GET",
+        "path": "users/me",
+        "url": "{{base_url}}users/me",
+        "auth": "inherit",
+        "file": "bruno/user/me.yml",
+        "bodyType": null,
+        "bodyExample": null,
+        "assertions": [
+          {
+            "expression": "res.status",
+            "operator": "eq",
+            "value": "200"
+          }
+        ],
+        "runtimeScripts": [],
+        "environmentVariables": [
+          "base_url"
+        ],
+        "sourceFiles": [],
+        "requestDtoNames": [],
+        "requestFields": [],
+        "responseDtoNames": [],
+        "responseFields": [],
+        "requestModelId": null,
+        "responseModelId": null,
+        "interactionHints": [
+          "This endpoint uses auth strategy 'inherit'.",
+          "Bruno assertions define expected success behavior.",
+          "Bruno does not explicitly document a response model for this endpoint."
+        ]
+      },
+      {
+        "name": "login",
+        "group": "user",
+        "method": "POST",
+        "path": "users/login",
+        "url": "{{base_url}}users/login",
+        "auth": "inherit",
+        "file": "bruno/user/login.yml",
+        "bodyType": "json",
+        "bodyExample": {
+          "email": "{{email}}",
+          "password": "{{password}}",
+          "deviceID": "{{device_id}}"
+        },
+        "assertions": [
+          {
+            "expression": "res.status",
+            "operator": "eq",
+            "value": "200"
+          }
+        ],
+        "runtimeScripts": [
+          {
+            "type": "after-response",
+            "code": "const body = res.body;\nif (!body?.token) {\n  throw new Error(\"Login response does not contain token\");\n}\nbru.setVar(\"token\", body.token);"
+          }
+        ],
+        "environmentVariables": [
+          "base_url",
+          "device_id",
+          "email",
+          "password"
+        ],
+        "sourceFiles": [],
+        "requestDtoNames": [],
+        "requestFields": [
+          "deviceID",
+          "email",
+          "password"
+        ],
+        "responseDtoNames": [],
+        "responseFields": [],
+        "requestModelId": "POST_users_login_request",
+        "responseModelId": null,
+        "interactionHints": [
+          "This endpoint uses auth strategy 'inherit'.",
+          "Bruno provides a structured request example for this endpoint.",
+          "Bruno runtime scripts encode post-request behavior.",
+          "Bruno assertions define expected success behavior.",
+          "Bruno does not explicitly document a response model for this endpoint."
+        ]
+      }
+    ],
+    "modelCount": 1,
+    "models": [
+      {
+        "id": "POST_users_login_request",
+        "name": "POST users/login request",
+        "kind": "request",
+        "endpointKey": "POST users/login",
+        "method": "POST",
+        "path": "users/login",
+        "source": "bruno",
+        "fieldCount": 3,
+        "dtoNames": [],
+        "fields": [
+          "deviceID",
+          "email",
+          "password"
+        ],
+        "example": {
+          "email": "{{email}}",
+          "password": "{{password}}",
+          "deviceID": "{{device_id}}"
+        },
+        "brunoFile": "bruno/user/login.yml",
+        "sourceFiles": [],
+        "notes": []
+      }
+    ],
+    "environments": [
+      {
+        "name": "dev",
+        "file": "bruno/environments/dev.yml",
+        "variables": [
+          {
+            "name": "base_url",
+            "value": ""
+          },
+          {
+            "name": "email",
+            "value": "jorge@mrht.dev"
+          },
+          {
+            "name": "password",
+            "value": "123456"
+          },
+          {
+            "name": "device_id",
+            "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+          },
+          {
+            "name": "token",
+            "value": ""
+          }
+        ]
+      },
+      {
+        "name": "localhost",
+        "file": "bruno/environments/localhost.yml",
+        "variables": [
+          {
+            "name": "base_url",
+            "value": "http://127.0.0.1:8080/"
+          },
+          {
+            "name": "email",
+            "value": "jorge@mrht.dev"
+          },
+          {
+            "name": "password",
+            "value": "123456"
+          },
+          {
+            "name": "device_id",
+            "value": "8ebe14ee-26a6-481c-8add-15741530e5e1"
+          },
+          {
+            "name": "token",
+            "value": ""
+          }
+        ]
+      }
+    ],
+    "authProfile": {
+      "collectionAuth": "bearer",
+      "folderAuth": [
+        {
+          "group": "user",
+          "auth": "inherit"
+        }
+      ],
+      "authSourceFiles": [],
+      "payloadSecurityFiles": []
+    }
+  }
+} as Record<string, ContractSnapshot>;
+
