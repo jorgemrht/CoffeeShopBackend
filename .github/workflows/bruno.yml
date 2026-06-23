@@ -47,7 +47,7 @@ jobs:
           mkdir -p ../reports
           bru run \
             --env dev \
-            --env-var base_url="http://127.0.0.1:${CONTAINER_PORT}" \
+            --env-var base_url="http://127.0.0.1:${CONTAINER_PORT}/" \
             --env-var email="$API_EMAIL" \
             --env-var password="$API_PASSWORD" \
             --env-var device_id="$API_DEVICE_ID" \
