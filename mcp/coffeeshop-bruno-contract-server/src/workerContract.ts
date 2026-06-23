@@ -14,7 +14,7 @@ type ResponseFormat = "markdown" | "json";
 
 type ToolResponse = {
   content: Array<{ type: "text"; text: string }>;
-  structuredContent?: unknown;
+  structuredContent?: Record<string, unknown>;
   isError?: boolean;
 };
 
@@ -550,7 +550,7 @@ function diffSnapshots(from: ContractSnapshot, to: ContractSnapshot): ContractDi
 function formatResult(data: unknown, responseFormat: ResponseFormat, markdown: string): ToolResponse {
   return {
     content: [{ type: "text", text: responseFormat === "json" ? JSON.stringify(data, null, 2) : markdown }],
-    structuredContent: data
+    structuredContent: toStructuredContent(data)
   };
 }
 
@@ -878,4 +878,12 @@ function isRecord(input: unknown): input is Record<string, unknown> {
 
 function asMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function toStructuredContent(data: unknown): Record<string, unknown> {
+  if (isRecord(data)) {
+    return data;
+  }
+
+  return { data };
 }

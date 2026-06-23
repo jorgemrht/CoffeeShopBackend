@@ -55,7 +55,7 @@ export async function loadEndpointContracts(context: ContractContext): Promise<E
     const assertions = Array.isArray(parsed?.runtime?.assertions) ? parsed.runtime.assertions : [];
     const environmentVariables = extractTemplateVariables(JSON.stringify(parsed));
     const requestFields = isRecord(bodyExample) ? Object.keys(bodyExample).sort() : [];
-    const responseFields = [];
+    const responseFields: string[] = [];
     const requestModelId = requestFields.length > 0 || method !== "GET" ? modelKey(method, normalizedPath, "request") : null;
     const responseModelId = null;
 
