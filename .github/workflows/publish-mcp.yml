@@ -1,0 +1,84 @@
+name: Publish MCP Base
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-mcp:
+    name: Publish MCP to Cloudflare
+    runs-on: ubuntu-latest
+    environment: development
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install dependencies
+        working-directory: mcp/coffeeshop-bruno-contract-server
+        run: npm ci
+
+      - name: Build server
+        working-directory: mcp/coffeeshop-bruno-contract-server
+        run: npm run build
+
+      - name: Export contract snapshot
+        working-directory: mcp/coffeeshop-bruno-contract-server
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          VERSION="sha-${SHORT_SHA}"
+          npm run export:snapshot -- "$VERSION"
+          cp "snapshots/${VERSION}.json" snapshots/latest.json
+
+      - name: Generate Cloudflare contract data
+        working-directory: mcp/coffeeshop-bruno-contract-server
+        run: npm run generate:cloudflare-data
+
+      - name: Validate build with generated Cloudflare data
+        working-directory: mcp/coffeeshop-bruno-contract-server
+        run: npm run build
+
+      - name: Upload contract snapshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: mcp-contract-snapshots
+          path: |
+            mcp/coffeeshop-bruno-contract-server/snapshots/*.json
+            mcp/coffeeshop-bruno-contract-server/src/generated/contractData.ts
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Persist snapshots in repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mcp/coffeeshop-bruno-contract-server/snapshots
+          git add mcp/coffeeshop-bruno-contract-server/src/generated/contractData.ts
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(mcp): refresh contract snapshots for ${GITHUB_SHA::7}"
+          git push
+
+      - name: Validate Cloudflare deploy secrets
+        working-directory: mcp/coffeeshop-bruno-contract-server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+
+      - name: Deploy Cloudflare Worker
+        working-directory: mcp/coffeeshop-bruno-contract-server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy:cloudflare

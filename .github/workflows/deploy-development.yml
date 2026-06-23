@@ -34,62 +34,8 @@ jobs:
         run: swift test -v
 
   bruno-tests:
-    name: Run Bruno API Tests
-    runs-on: ubuntu-latest
-    environment: development
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          package-manager-cache: false
-
-      - name: Install Bruno CLI
-        run: npm install -g @usebruno/cli
-
-      - name: Validate Bruno test secrets
-        env:
-          API_BASE_URL: ${{ secrets.API_BASE_URL }}
-          API_EMAIL: ${{ secrets.API_EMAIL }}
-          API_PASSWORD: ${{ secrets.API_PASSWORD }}
-          API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
-        run: |
-          test -n "$API_BASE_URL"
-          test -n "$API_EMAIL"
-          test -n "$API_PASSWORD"
-          test -n "$API_DEVICE_ID"
-
-      - name: Run Bruno tests
-        working-directory: bruno
-        env:
-          API_BASE_URL: ${{ secrets.API_BASE_URL }}
-          API_EMAIL: ${{ secrets.API_EMAIL }}
-          API_PASSWORD: ${{ secrets.API_PASSWORD }}
-          API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
-        run: |
-          mkdir -p ../reports
-          bru run \
-            --env dev \
-            --env-var base_url="$API_BASE_URL" \
-            --env-var email="$API_EMAIL" \
-            --env-var password="$API_PASSWORD" \
-            --env-var device_id="$API_DEVICE_ID" \
-            --reporter-html ../reports/bruno-report.html \
-            --reporter-skip-headers Authorization \
-            --reporter-skip-body
-
-      - name: Upload Bruno report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: bruno-report
-          path: reports/bruno-report.html
-          if-no-files-found: error
+    uses: ./.github/workflows/bruno.yml
+    secrets: inherit
 
   deploy:
     name: Deploy to Heroku Development
@@ -139,3 +85,8 @@ jobs:
       - name: Release image on Heroku
         run: |
           heroku container:release web --app "$HEROKU_APP_NAME"
+
+  publish-mcp:
+    needs: deploy
+    uses: ./.github/workflows/publish-mcp.yml
+    secrets: inherit
