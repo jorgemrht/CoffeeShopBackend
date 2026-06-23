@@ -121,6 +121,10 @@ jobs:
               fh.write(f"{key}<<__EOF__\n{value}\n__EOF__\n")
           PY
 
+          test -n "$API_EMAIL"
+          test -n "$API_PASSWORD"
+          test -n "$API_DEVICE_ID"
+
       - name: Run Bruno against the built container with Heroku config
         run: |
           env_args=()
