@@ -4,3 +4,8 @@ CoffeeShop/Public/.gitkeep
 Public/.gitkeep
 Sources/CoffeeShop/Controllers/.gitkeep
 mcp/coffeeshop-bruno-contract-server/snapshots/.gitkeep
+mcp/coffeeshop-bruno-contract-server/node_modules
+.build
+.build-cache
+.swiftpm
+mcp/coffeeshop-bruno-contract-server/dist

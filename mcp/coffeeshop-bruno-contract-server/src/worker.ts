@@ -15,7 +15,7 @@ export default {
     if (request.method === "GET" && url.pathname === "/health") {
       return json({
         ok: true,
-        service: "coffeeshop-bruno-contract-mcp",
+        service: "coffeeshop-mcp",
         snapshotVersion: currentSnapshot.snapshotVersion,
         generatedAt: currentSnapshot.generatedAt
       });

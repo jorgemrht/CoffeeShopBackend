@@ -10,7 +10,7 @@ export type SnapshotState = {
 
 export function createMcpServer(loadSnapshotState: () => Promise<SnapshotState>): McpServer {
   const server = new McpServer({
-    name: "coffeeshop-bruno-contract-mcp",
+    name: "coffeeshop-mcp",
     version: "0.2.0"
   });
 

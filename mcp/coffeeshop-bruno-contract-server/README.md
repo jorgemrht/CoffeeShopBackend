@@ -88,6 +88,30 @@ Worker endpoints:
 - `GET /health`
 - `GET /contract/latest`
 
+Remote client transport:
+
+- The deployed Cloudflare endpoint is `https://.../mcp`
+- Transport is MCP Streamable HTTP
+- Do not configure clients against `wss://.../mcp`
+
+Example Codex or Claude Desktop proxy config:
+
+```toml
+[mcp_servers.coffeeshop-mcp]
+command = "npx"
+args = ["-y", "mcp-remote", "https://coffeeshop-mcp.jorgemrht.workers.dev/mcp"]
+```
+
+Quick remote verification:
+
+```bash
+curl -i https://coffeeshop-mcp.jorgemrht.workers.dev/health
+curl -i -X POST https://coffeeshop-mcp.jorgemrht.workers.dev/mcp \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"1.0"}}}'
+```
+
 Local Cloudflare development:
 
 ```bash
