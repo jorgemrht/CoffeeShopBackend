@@ -10,8 +10,8 @@ final class UserToken: Model, @unchecked Sendable {
     @Field(key: FieldKeys.tokenHash)
     var tokenHash: String
 
-    @Field(key: FieldKeys.deviceID)
-    var deviceID: String
+    @Field(key: FieldKeys.device_id)
+    var device_id: String
 
     @OptionalField(key: FieldKeys.revokedAt)
     var revokedAt: Date?
@@ -30,12 +30,12 @@ final class UserToken: Model, @unchecked Sendable {
     init(
         id: UUID? = nil,
         tokenHash: String,
-        deviceID: String,
+        device_id: String,
         userID: User.IDValue
     ) {
         self.id = id
         self.tokenHash = tokenHash
-        self.deviceID = deviceID
+        self.device_id = device_id
         self.$user.id = userID
     }
 }
@@ -45,7 +45,7 @@ extension UserToken {
 
     enum FieldKeys {
         static let tokenHash: FieldKey = "token_hash"
-        static let deviceID: FieldKey = "device_id"
+        static let device_id: FieldKey = "device_id"
         static let revokedAt: FieldKey = "revoked_at"
         static let createdAt: FieldKey = "created_at"
         static let lastUsedAt: FieldKey = "last_used_at"

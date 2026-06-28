@@ -10,7 +10,7 @@ struct CreateUser: AsyncMigration {
             .field(User.FieldKeys.username, .string, .required)
             .field(User.FieldKeys.email, .string, .required)
             .field(User.FieldKeys.password, .string, .required)
-            .field(User.FieldKeys.isValidateEmail, .bool, .required)
+            .field(User.FieldKeys.is_validate_email, .bool, .required)
             .unique(on: User.FieldKeys.username)
             .unique(on: User.FieldKeys.email)
             .create()
@@ -29,7 +29,7 @@ private extension User {
             username: DefaultSeed.username,
             email: DefaultSeed.email,
             password: try Bcrypt.hash(DefaultSeed.password),
-            isValidateEmail: true
+            is_validate_email: true
         )
     }
 }

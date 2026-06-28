@@ -12,7 +12,7 @@ http:
         {
           "email": "{{email}}",
           "password": "{{password}}",
-          "deviceID": "{{device_id}}"
+          "device_id": "{{device_id}}"
         }
   auth: inherit
 

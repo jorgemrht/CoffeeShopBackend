@@ -2,11 +2,11 @@ import Fluent
 import Vapor
 
 extension User {
-    func generateToken(deviceID: String) throws -> (rawValue: String, userToken: UserToken) {
+    func generateToken(device_id: String) throws -> (rawValue: String, userToken: UserToken) {
         let rawValue = UserToken.makeValue()
         let userToken = try UserToken(
             tokenHash: UserToken.makeHash(from: rawValue),
-            deviceID: deviceID,
+            device_id: device_id,
             userID: requireID()
         )
 
