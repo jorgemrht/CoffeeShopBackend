@@ -1,5 +1,4 @@
 import type {
-  ContractDiff,
   ContractSnapshot,
   DriftReport,
   EndpointContract,
@@ -138,33 +137,10 @@ export function listWorkerTools(): ToolDefinition[] {
       annotations: readOnlyAnnotations()
     },
     {
-      name: "coffeeshop_list_contract_versions",
-      title: "List Contract Versions",
-      description: "List contract snapshots published from Bruno changes.",
-      inputSchema: responseSchema({}),
-      annotations: readOnlyAnnotations()
-    },
-    {
-      name: "coffeeshop_diff_contract_versions",
-      title: "Diff Contract Versions",
-      description: "Compare two published Bruno-derived contract snapshots and report added, removed, or changed endpoints.",
-      inputSchema: responseSchema({
-        from_version: { type: "string", description: "Older snapshot version." },
-        to_version: { type: "string", description: "Newer snapshot version." }
-      }),
-      annotations: readOnlyAnnotations()
-    },
-    {
       name: "coffeeshop_get_current_contract_snapshot",
       title: "Get Current Contract Snapshot",
       description: "Return the full currently published contract snapshot derived from Bruno.",
-      inputSchema: responseSchema({
-        snapshot_version: {
-          type: "string",
-          default: "current",
-          description: "Use 'current' or a concrete published version."
-        }
-      }),
+      inputSchema: responseSchema({}),
       annotations: readOnlyAnnotations()
     }
   ];
@@ -173,8 +149,7 @@ export function listWorkerTools(): ToolDefinition[] {
 export function callWorkerTool(
   name: string,
   args: Record<string, unknown>,
-  currentSnapshot: ContractSnapshot,
-  snapshotIndex: Record<string, ContractSnapshot>
+  currentSnapshot: ContractSnapshot
 ): ToolResponse {
   const responseFormat = readResponseFormat(args);
 
@@ -200,12 +175,8 @@ export function callWorkerTool(
         return formatResult(currentSnapshot.authProfile, responseFormat, renderAuthProfileMarkdown(currentSnapshot));
       case "coffeeshop_analyze_contract_drift":
         return analyzeContract(args, currentSnapshot, responseFormat);
-      case "coffeeshop_list_contract_versions":
-        return listVersions(snapshotIndex, responseFormat);
-      case "coffeeshop_diff_contract_versions":
-        return diffVersions(args, snapshotIndex, responseFormat);
       case "coffeeshop_get_current_contract_snapshot":
-        return getSnapshot(args, currentSnapshot, snapshotIndex, responseFormat);
+        return getSnapshot(currentSnapshot, responseFormat);
       default:
         return errorResult(`Unknown tool '${name}'.`);
     }
@@ -382,44 +353,12 @@ function analyzeContract(args: Record<string, unknown>, snapshot: ContractSnapsh
   return formatResult(reports, responseFormat, renderDriftMarkdown(reports));
 }
 
-function listVersions(snapshotIndex: Record<string, ContractSnapshot>, responseFormat: ResponseFormat): ToolResponse {
-  const versions = Object.keys(snapshotIndex)
-    .sort()
-    .map((version) => ({ version, file: `snapshots/${version}.json` }));
-  return formatResult(versions, responseFormat, renderVersionsMarkdown(versions));
-}
-
-function diffVersions(args: Record<string, unknown>, snapshotIndex: Record<string, ContractSnapshot>, responseFormat: ResponseFormat): ToolResponse {
-  const fromVersion = readRequiredString(args.from_version, "from_version");
-  const toVersion = readRequiredString(args.to_version, "to_version");
-  const from = snapshotIndex[fromVersion];
-  const to = snapshotIndex[toVersion];
-
-  if (!from) throw new Error(`Unknown snapshot version '${fromVersion}'.`);
-  if (!to) throw new Error(`Unknown snapshot version '${toVersion}'.`);
-
-  const diff = diffSnapshots(from, to);
-  return formatResult(diff, responseFormat, renderDiffMarkdown(diff));
-}
-
-function getSnapshot(
-  args: Record<string, unknown>,
-  currentSnapshot: ContractSnapshot,
-  snapshotIndex: Record<string, ContractSnapshot>,
-  responseFormat: ResponseFormat
-): ToolResponse {
-  const requested = readOptionalString(args.snapshot_version) ?? "current";
-  const snapshot = requested === "current"
-    ? currentSnapshot
-    : requested === "latest"
-      ? snapshotIndex.latest ?? currentSnapshot
-      : snapshotIndex[requested];
-
-  if (!snapshot) {
-    throw new Error(`Unknown snapshot version '${requested}'.`);
-  }
-
-  return formatResult(snapshot, responseFormat, `# Contract snapshot\n\n- Version: ${snapshot.snapshotVersion}\n- Generated at: ${snapshot.generatedAt}\n- Endpoints: ${snapshot.endpointCount}`);
+function getSnapshot(currentSnapshot: ContractSnapshot, responseFormat: ResponseFormat): ToolResponse {
+  return formatResult(
+    currentSnapshot,
+    responseFormat,
+    `# Contract snapshot\n\n- Version: ${currentSnapshot.snapshotVersion}\n- Generated at: ${currentSnapshot.generatedAt}\n- Endpoints: ${currentSnapshot.endpointCount}`
+  );
 }
 
 function findEndpoint(
@@ -509,41 +448,6 @@ function buildEndpointInteraction(endpoint: EndpointContract): EndpointInteracti
     runtimeBehavior: { assertions: endpoint.assertions, scripts: endpoint.runtimeScripts },
     clientSteps,
     notes: endpoint.interactionHints
-  };
-}
-
-function diffSnapshots(from: ContractSnapshot, to: ContractSnapshot): ContractDiff {
-  const fromIndex = new Map(from.endpoints.map((endpoint) => [contractKey(endpoint), endpoint]));
-  const toIndex = new Map(to.endpoints.map((endpoint) => [contractKey(endpoint), endpoint]));
-  const added: EndpointSummary[] = [];
-  const removed: EndpointSummary[] = [];
-  const changed: ContractDiff["changed"] = [];
-
-  for (const [key, endpoint] of toIndex) {
-    if (!fromIndex.has(key)) {
-      added.push(toSummary(endpoint));
-      continue;
-    }
-
-    const before = fromIndex.get(key)!;
-    const changedFields = listChangedFields(before, endpoint);
-    if (changedFields.length > 0) {
-      changed.push({ key, before, after: endpoint, changedFields });
-    }
-  }
-
-  for (const [key, endpoint] of fromIndex) {
-    if (!toIndex.has(key)) {
-      removed.push(toSummary(endpoint));
-    }
-  }
-
-  return {
-    fromVersion: from.snapshotVersion,
-    toVersion: to.snapshotVersion,
-    added: added.sort((left, right) => contractKey(left).localeCompare(contractKey(right))),
-    removed: removed.sort((left, right) => contractKey(left).localeCompare(contractKey(right))),
-    changed: changed.sort((left, right) => left.key.localeCompare(right.key))
   };
 }
 
@@ -732,47 +636,6 @@ function renderDriftMarkdown(reports: DriftReport[]): string {
       lines.push(`- Note: ${note}`);
     }
     lines.push("");
-  }
-  return lines.join("\n");
-}
-
-function renderVersionsMarkdown(versions: Array<{ version: string; file: string }>): string {
-  const lines = ["# Contract versions", ""];
-  if (versions.length === 0) {
-    lines.push("No snapshots available.");
-    return lines.join("\n");
-  }
-  for (const version of versions) {
-    lines.push(`- ${version.version} (${version.file})`);
-  }
-  return lines.join("\n");
-}
-
-function renderDiffMarkdown(diff: ContractDiff): string {
-  const lines = [
-    `# Contract diff: ${diff.fromVersion} -> ${diff.toVersion}`,
-    "",
-    `- Added endpoints: ${diff.added.length}`,
-    `- Removed endpoints: ${diff.removed.length}`,
-    `- Changed endpoints: ${diff.changed.length}`
-  ];
-  if (diff.added.length > 0) {
-    lines.push("", "## Added");
-    for (const endpoint of diff.added) {
-      lines.push(`- \`${endpoint.method} ${endpoint.path}\` (${endpoint.file})`);
-    }
-  }
-  if (diff.removed.length > 0) {
-    lines.push("", "## Removed");
-    for (const endpoint of diff.removed) {
-      lines.push(`- \`${endpoint.method} ${endpoint.path}\` (${endpoint.file})`);
-    }
-  }
-  if (diff.changed.length > 0) {
-    lines.push("", "## Changed");
-    for (const item of diff.changed) {
-      lines.push(`- \`${item.after.method} ${item.after.path}\` fields: ${item.changedFields.join(", ")}`);
-    }
   }
   return lines.join("\n");
 }

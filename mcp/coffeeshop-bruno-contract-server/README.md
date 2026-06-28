@@ -36,8 +36,6 @@ Primary source order:
 - `coffeeshop_get_environment`
 - `coffeeshop_get_auth_profile`
 - `coffeeshop_analyze_contract_drift`
-- `coffeeshop_list_contract_versions`
-- `coffeeshop_diff_contract_versions`
 - `coffeeshop_get_current_contract_snapshot`
 
 ## Configuration
@@ -48,9 +46,6 @@ Environment variables:
   Default: `<repo>/bruno`
 - `REPO_ROOT`
   Default: repository root inferred from the server location
-- `SNAPSHOT_ROOT`
-  Default: `<repo>/mcp/coffeeshop-bruno-contract-server/snapshots`
-
 ## Local usage
 
 ```bash
@@ -65,10 +60,10 @@ For development:
 npm run dev
 ```
 
-Create a versioned contract snapshot:
+Generate the published contract data module:
 
 ```bash
-npm run export:snapshot -- 2026-06-22
+npm run generate:cloudflare-data -- sha-local
 ```
 
 ## Cloudflare deployment model
@@ -78,8 +73,7 @@ Cloudflare runs the remote MCP endpoint, but the published contract still comes 
 Publication flow:
 
 1. `bruno/` is parsed in CI
-2. CI exports JSON snapshots from Bruno only
-3. CI generates `src/generated/contractData.ts`
+2. CI generates `src/generated/contractData.ts` directly from Bruno
 4. Cloudflare Worker serves `/mcp` from that generated Bruno-derived snapshot using the official Cloudflare `createMcpHandler()` API
 
 Worker endpoints:
@@ -132,7 +126,7 @@ npm run deploy:cloudflare
 Recommended architecture:
 
 1. Keep Bruno as the source of truth in the backend repo.
-2. Publish versioned snapshots generated only from Bruno.
+2. Generate one published contract snapshot directly from Bruno.
 3. Reuse the same tool definitions and handlers for both local `stdio` and remote Cloudflare access.
 4. Deploy the Cloudflare Worker that serves the published snapshot over `/mcp`.
 5. Point agent clients to the MCP server rather than the repository.
@@ -147,10 +141,9 @@ That workflow:
 2. runs the Bruno contract tests
 3. deploys the backend to Heroku development
 4. builds the MCP server
-5. exports a fresh contract snapshot
-6. generates the Cloudflare data module from the published snapshots
-7. persists snapshots and generated data in the repository
-8. deploys the Worker to Cloudflare
+5. generates the Cloudflare data module directly from Bruno
+6. persists generated data in the repository
+7. deploys the Worker to Cloudflare
 
 ## GitHub secrets required for Cloudflare
 
@@ -176,7 +169,7 @@ Recommended Cloudflare token permissions:
 
 - `stdio` transport is implemented for local development and inspection.
 - `streamable HTTP` is exposed remotely on `/mcp` through the Cloudflare Worker using Cloudflare's official stateless MCP handler.
-- Contract versioning is implemented through JSON snapshots.
+- The published MCP payload is a single generated snapshot.
 - All contract data is derived only from Bruno.
 
 ## Remaining evolution

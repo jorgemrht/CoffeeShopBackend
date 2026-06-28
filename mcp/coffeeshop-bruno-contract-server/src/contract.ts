@@ -3,7 +3,6 @@ import path from "node:path";
 import YAML from "yaml";
 import type {
   AuthProfile,
-  ContractDiff,
   ContractSnapshot,
   DriftReport,
   EndpointContract,
@@ -18,15 +17,13 @@ import type {
 export type ContractContext = {
   repoRoot: string;
   brunoRoot: string;
-  snapshotRoot: string;
 };
 
 export function createContext(): ContractContext {
   const repoRoot = path.resolve(process.env.REPO_ROOT ?? path.join(import.meta.dirname, "../../.."));
   return {
     repoRoot,
-    brunoRoot: path.resolve(process.env.BRUNO_ROOT ?? path.join(repoRoot, "bruno")),
-    snapshotRoot: path.resolve(process.env.SNAPSHOT_ROOT ?? path.join(repoRoot, "mcp/coffeeshop-bruno-contract-server/snapshots"))
+    brunoRoot: path.resolve(process.env.BRUNO_ROOT ?? path.join(repoRoot, "bruno"))
   };
 }
 
@@ -280,62 +277,6 @@ export async function buildSnapshot(context: ContractContext, snapshotVersion: s
   };
 }
 
-export async function listSnapshotVersions(context: ContractContext): Promise<Array<{ version: string; file: string }>> {
-  try {
-    const files = (await walk(context.snapshotRoot)).filter((file) => file.endsWith(".json"));
-    return files.map((file) => ({ version: path.basename(file, ".json"), file: relativeToRepo(context, file) })).sort((a, b) => a.version.localeCompare(b.version));
-  } catch {
-    return [];
-  }
-}
-
-export async function loadSnapshot(context: ContractContext, version: string): Promise<ContractSnapshot> {
-  const file = path.join(context.snapshotRoot, `${version}.json`);
-  const text = await fs.readFile(file, "utf8");
-  return JSON.parse(text) as ContractSnapshot;
-}
-
-export function diffSnapshots(from: ContractSnapshot, to: ContractSnapshot): ContractDiff {
-  const fromIndex = new Map(from.endpoints.map((endpoint) => [contractKey(endpoint), endpoint]));
-  const toIndex = new Map(to.endpoints.map((endpoint) => [contractKey(endpoint), endpoint]));
-  const added: EndpointSummary[] = [];
-  const removed: EndpointSummary[] = [];
-  const changed: ContractDiff["changed"] = [];
-
-  for (const [key, endpoint] of toIndex) {
-    if (!fromIndex.has(key)) {
-      added.push(toSummary(endpoint));
-      continue;
-    }
-    const before = fromIndex.get(key)!;
-    const changedFields = listChangedFields(before, endpoint);
-    if (changedFields.length > 0) {
-      changed.push({ key, before, after: endpoint, changedFields });
-    }
-  }
-
-  for (const [key, endpoint] of fromIndex) {
-    if (!toIndex.has(key)) {
-      removed.push(toSummary(endpoint));
-    }
-  }
-
-  return {
-    fromVersion: from.snapshotVersion,
-    toVersion: to.snapshotVersion,
-    added: added.sort((a, b) => contractKey(a).localeCompare(contractKey(b))),
-    removed: removed.sort((a, b) => contractKey(a).localeCompare(contractKey(b))),
-    changed: changed.sort((a, b) => a.key.localeCompare(b.key))
-  };
-}
-
-export async function writeSnapshot(context: ContractContext, snapshot: ContractSnapshot): Promise<string> {
-  await fs.mkdir(context.snapshotRoot, { recursive: true });
-  const file = path.join(context.snapshotRoot, `${snapshot.snapshotVersion}.json`);
-  await fs.writeFile(file, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
-  return file;
-}
-
 export function renderEndpointListMarkdown(output: { total: number; count: number; offset: number; endpoints: EndpointSummary[]; has_more: boolean; next_offset: number | null }): string {
   const lines = ["# CoffeeShop endpoints", "", `Showing ${output.count} of ${output.total} endpoints from offset ${output.offset}.`];
   for (const endpoint of output.endpoints) {
@@ -515,47 +456,6 @@ export function renderDriftMarkdown(reports: DriftReport[]): string {
   return lines.join("\n");
 }
 
-export function renderVersionsMarkdown(versions: Array<{ version: string; file: string }>): string {
-  const lines = ["# Contract versions", ""];
-  if (versions.length === 0) {
-    lines.push("No snapshots available.");
-    return lines.join("\n");
-  }
-  for (const version of versions) {
-    lines.push(`- ${version.version} (${version.file})`);
-  }
-  return lines.join("\n");
-}
-
-export function renderDiffMarkdown(diff: ContractDiff): string {
-  const lines = [
-    `# Contract diff: ${diff.fromVersion} -> ${diff.toVersion}`,
-    "",
-    `- Added endpoints: ${diff.added.length}`,
-    `- Removed endpoints: ${diff.removed.length}`,
-    `- Changed endpoints: ${diff.changed.length}`
-  ];
-  if (diff.added.length > 0) {
-    lines.push("", "## Added");
-    for (const endpoint of diff.added) {
-      lines.push(`- \`${endpoint.method} ${endpoint.path}\` (${endpoint.file})`);
-    }
-  }
-  if (diff.removed.length > 0) {
-    lines.push("", "## Removed");
-    for (const endpoint of diff.removed) {
-      lines.push(`- \`${endpoint.method} ${endpoint.path}\` (${endpoint.file})`);
-    }
-  }
-  if (diff.changed.length > 0) {
-    lines.push("", "## Changed");
-    for (const item of diff.changed) {
-      lines.push(`- \`${item.after.method} ${item.after.path}\` fields: ${item.changedFields.join(", ")}`);
-    }
-  }
-  return lines.join("\n");
-}
-
 export function formatResult(data: unknown, responseFormat: "markdown" | "json", markdown: string) {
   return {
     content: [{ type: "text" as const, text: responseFormat === "json" ? JSON.stringify(data, null, 2) : markdown }],
@@ -588,23 +488,6 @@ function toSummary(endpoint: EndpointContract): EndpointSummary {
     auth: endpoint.auth,
     file: endpoint.file
   };
-}
-
-function listChangedFields(before: EndpointContract, after: EndpointContract): string[] {
-  const candidates: Array<keyof EndpointContract> = [
-    "auth",
-    "bodyType",
-    "bodyExample",
-    "assertions",
-    "runtimeScripts",
-    "environmentVariables",
-    "requestFields",
-    "responseFields",
-    "requestModelId",
-    "responseModelId",
-    "interactionHints"
-  ];
-  return candidates.filter((field) => JSON.stringify(before[field]) !== JSON.stringify(after[field])).map(String);
 }
 
 function buildModelsFromEndpoints(endpoints: EndpointContract[]): ModelContract[] {

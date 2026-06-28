@@ -1,11 +1,10 @@
 import { createMcpHandler } from "agents/mcp";
-import { currentSnapshot, snapshotIndex } from "./generated/contractData.js";
+import { currentSnapshot } from "./generated/contractData.js";
 import { createMcpServer } from "./mcpServer.js";
 import type { SnapshotState } from "./mcpServer.js";
 
 const publishedSnapshotState: SnapshotState = {
-  currentSnapshot,
-  snapshotIndex
+  currentSnapshot
 };
 
 export default {

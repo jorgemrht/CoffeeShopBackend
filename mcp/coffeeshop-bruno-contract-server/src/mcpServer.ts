@@ -5,7 +5,6 @@ import type { ContractSnapshot } from "./types.js";
 
 export type SnapshotState = {
   currentSnapshot: ContractSnapshot;
-  snapshotIndex: Record<string, ContractSnapshot>;
 };
 
 export function createMcpServer(loadSnapshotState: () => Promise<SnapshotState>): McpServer {
@@ -24,8 +23,8 @@ export function createMcpServer(loadSnapshotState: () => Promise<SnapshotState>)
         annotations: tool.annotations
       },
       async (args) => {
-        const { currentSnapshot, snapshotIndex } = await loadSnapshotState();
-        return callWorkerTool(tool.name, args, currentSnapshot, snapshotIndex);
+        const { currentSnapshot } = await loadSnapshotState();
+        return callWorkerTool(tool.name, args, currentSnapshot);
       }
     );
   }
