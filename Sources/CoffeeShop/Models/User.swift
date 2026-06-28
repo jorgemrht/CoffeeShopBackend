@@ -15,8 +15,8 @@ final class User: Model, @unchecked Sendable {
     @Field(key: FieldKeys.password)
     var password: String
 
-    @Field(key: FieldKeys.isValidateEmail)
-    var isValidateEmail: Bool
+    @Field(key: FieldKeys.is_validate_email)
+    var is_validate_email: Bool
 
     init() { }
 
@@ -25,13 +25,13 @@ final class User: Model, @unchecked Sendable {
         username: String,
         email: String,
         password: String,
-        isValidateEmail: Bool = false
+        is_validate_email: Bool = false
     ) {
         self.id = id
         self.username = username
         self.email = email
         self.password = password
-        self.isValidateEmail = isValidateEmail
+        self.is_validate_email = is_validate_email
     }
 }
 
@@ -42,7 +42,7 @@ extension User {
         static let username: FieldKey = "username"
         static let email: FieldKey = "email"
         static let password: FieldKey = "password_hash"
-        static let isValidateEmail: FieldKey = "isValidateEmail"
+        static let is_validate_email: FieldKey = "is_validate_email"
     }
 }
 

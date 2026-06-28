@@ -11,8 +11,8 @@ extension QueryBuilder where Model == UserToken {
         self.filter(\.$user.$id == userID)
     }
 
-    func filter(byDeviceID deviceID: String) -> Self {
-        self.filter(\.$deviceID == deviceID)
+    func filter(byDeviceID device_id: String) -> Self {
+        self.filter(\.$device_id == device_id)
     }
 
     func filter(byTokenHash tokenHash: String) -> Self {

@@ -3,7 +3,7 @@ import Vapor
 struct UserMeResponseDTO: Content {
     let username: String
     let email: String
-    let isValidateEmail: Bool
+    let is_validate_email: Bool
 }
 
 extension User {
@@ -11,7 +11,7 @@ extension User {
         .init(
             username: username,
             email: email,
-            isValidateEmail: isValidateEmail
+            is_validate_email: is_validate_email
         )
     }
 }

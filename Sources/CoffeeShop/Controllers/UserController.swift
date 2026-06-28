@@ -21,7 +21,7 @@ struct UserController: RouteCollection {
         let loginRequest = try req.secureContent.decodeValidating(UserLoginRequestDTO.self)
         let token = try await UserToken.issue(
             for: user,
-            deviceID: loginRequest.deviceID,
+            device_id: loginRequest.device_id,
             on: req.db
         )
 

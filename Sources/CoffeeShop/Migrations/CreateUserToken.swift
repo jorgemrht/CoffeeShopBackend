@@ -7,13 +7,13 @@ struct CreateUserToken: AsyncMigration {
         try await database.schema(UserToken.schema)
             .id()
             .field(UserToken.FieldKeys.tokenHash, .string, .required)
-            .field(UserToken.FieldKeys.deviceID, .string, .required)
+            .field(UserToken.FieldKeys.device_id, .string, .required)
             .field(UserToken.FieldKeys.revokedAt, .datetime)
             .field(UserToken.FieldKeys.createdAt, .datetime)
             .field(UserToken.FieldKeys.lastUsedAt, .datetime)
             .field(UserToken.FieldKeys.userID, .uuid, .required, .references(User.schema, .id))
             .unique(on: UserToken.FieldKeys.tokenHash)
-            .unique(on: UserToken.FieldKeys.userID, UserToken.FieldKeys.deviceID)
+            .unique(on: UserToken.FieldKeys.userID, UserToken.FieldKeys.device_id)
             .create()
     }
 
