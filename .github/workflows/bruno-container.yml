@@ -31,10 +31,6 @@ on:
         required: false
         type: number
         default: 8080
-      payload_security_enabled:
-        required: false
-        type: string
-        default: "false"
 
 permissions:
   contents: read
@@ -49,14 +45,8 @@ jobs:
       run:
         shell: bash
     env:
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
-      API_EMAIL: ${{ secrets.API_EMAIL }}
-      API_PASSWORD: ${{ secrets.API_PASSWORD }}
-      API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
       IMAGE_TAG: ${{ inputs.image_tag }}
       CONTAINER_PORT: ${{ inputs.container_port }}
-      PAYLOAD_SECURITY_ENABLED: ${{ inputs.payload_security_enabled }}
 
     steps:
       - uses: actions/checkout@v7
@@ -71,6 +61,12 @@ jobs:
           package-manager-cache: false
 
       - name: Validate Bruno and Heroku configuration
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          API_EMAIL: ${{ secrets.API_EMAIL }}
+          API_PASSWORD: ${{ secrets.API_PASSWORD }}
+          API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
         run: |
           test -n "$HEROKU_API_KEY"
           test -n "$HEROKU_APP_NAME"
@@ -95,6 +91,12 @@ jobs:
         run: npm install -g @usebruno/cli
 
       - name: Export Heroku config vars for local container validation
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          API_EMAIL: ${{ secrets.API_EMAIL }}
+          API_PASSWORD: ${{ secrets.API_PASSWORD }}
+          API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
         run: |
           curl --fail-with-body --silent --show-error \
             "https://api.heroku.com/apps/${HEROKU_APP_NAME}/config-vars" \
@@ -105,20 +107,19 @@ jobs:
 
           python3 - <<'PY'
           import json
-          import os
           from pathlib import Path
+          import shlex
 
           config = json.loads(Path("/tmp/heroku-config.json").read_text())
-          github_env = Path(os.environ["GITHUB_ENV"])
-          keys_path = Path("/tmp/heroku-env-keys.txt")
+          script_path = Path("/tmp/heroku-docker-env-args.sh")
 
-          keys = sorted(config.keys())
-          keys_path.write_text("".join(f"{key}\n" for key in keys))
-
-          with github_env.open("a", encoding="utf-8") as fh:
-            for key in keys:
+          with script_path.open("w", encoding="utf-8") as fh:
+            fh.write("env_args=()\n")
+            for key in sorted(config.keys()):
+              if key in {"PAYLOAD_SECURITY_ENABLED", "PORT"}:
+                continue
               value = "" if config[key] is None else str(config[key])
-              fh.write(f"{key}<<__EOF__\n{value}\n__EOF__\n")
+              fh.write(f"env_args+=(-e {shlex.quote(f'{key}={value}')})\n")
           PY
 
           test -n "$API_EMAIL"
@@ -126,16 +127,17 @@ jobs:
           test -n "$API_DEVICE_ID"
 
       - name: Run Bruno against the built container with Heroku config
+        env:
+          API_EMAIL: ${{ secrets.API_EMAIL }}
+          API_PASSWORD: ${{ secrets.API_PASSWORD }}
+          API_DEVICE_ID: ${{ secrets.API_DEVICE_ID }}
         run: |
-          env_args=()
-          while IFS= read -r key; do
-            env_args+=(-e "$key")
-          done < /tmp/heroku-env-keys.txt
+          source /tmp/heroku-docker-env-args.sh
 
           docker run -d --rm --name coffeeshop-bruno \
             -p "${CONTAINER_PORT}:${CONTAINER_PORT}" \
             "${env_args[@]}" \
-            -e "PAYLOAD_SECURITY_ENABLED=${PAYLOAD_SECURITY_ENABLED}" \
+            -e "PAYLOAD_SECURITY_ENABLED=false" \
             -e "PORT=${CONTAINER_PORT}" \
             "$IMAGE_TAG"
 

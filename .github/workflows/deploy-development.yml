@@ -41,7 +41,6 @@ jobs:
       image_tag: coffeeshop-development:ci
       image_artifact_name: coffeeshop-development-image
       bruno_report_artifact_name: bruno-report
-      payload_security_enabled: "false"
     secrets: inherit
 
   deploy:
