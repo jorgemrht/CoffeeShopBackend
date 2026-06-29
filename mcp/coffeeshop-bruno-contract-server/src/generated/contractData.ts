@@ -1,10 +1,10 @@
 import type { ContractSnapshot } from "../types.js";
 
 export const currentSnapshot: ContractSnapshot = {
-  "snapshotVersion": "sha-local",
-  "generatedAt": "2026-06-28T21:49:52.482Z",
-  "repoRoot": "/Users/jorge/Projects/CoffeeShop/CoffeeShopBackend",
-  "brunoRoot": "/Users/jorge/Projects/CoffeeShop/CoffeeShopBackend/bruno",
+  "snapshotVersion": "sha-6229667",
+  "generatedAt": "2026-06-29T15:19:02.096Z",
+  "repoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend",
+  "brunoRoot": "/home/runner/work/CoffeeShopBackend/CoffeeShopBackend/bruno",
   "endpointCount": 2,
   "endpoints": [
     {
